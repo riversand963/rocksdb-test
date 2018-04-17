@@ -5,6 +5,8 @@
 #include <thread>
 #include <vector>
 
+#include <gflags/gflags.h>
+
 #include "rocksdb/db.h"
 #include "rocksdb/env.h"
 #include "rocksdb/options.h"
@@ -15,9 +17,16 @@ using std::cerr;
 using std::endl;
 using std::flush;
 
-static std::string FLAGS_db;
-static bool FLAGS_destroy_db = true;
-static int FLAGS_runtime_sec = 10;
+using gflags::ParseCommandLineFlags;
+using gflags::RegisterFlagValidator;
+using gflags::SetUsageMessage;
+
+DEFINE_int32(key_size, 10, "Key size");
+DEFINE_int32(value_size, 100, "Value size");
+DEFINE_string(db, "", "Use the db with the following name.");
+DEFINE_bool(destroy_db, true, "Destroy existing DB before running the test");
+DEFINE_int32(runtime_sec, 60, "How long are we running for, in seconds");
+DEFINE_int32(seed, 0xdeadbeef, "Random seed");
 
 namespace rocksdb {
 class MultiWritersTest {
@@ -85,6 +94,10 @@ private:
 } /* namespace rocksdb */
 
 int main(int argc, char* argv[]) {
+  SetUsageMessage(std::string("\nUSAGE:\n") + std::string(argv[0])
+      + " [OPTIONS]...");
+  ParseCommandLineFlags(&argc, &argv, true);
+
   rocksdb::MultiWritersTest multi_writers;
   return multi_writers.Run();
 }
